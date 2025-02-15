@@ -280,7 +280,7 @@ def run_comfy_generation(request: PredictionRequest) -> str:
     prompt_endpoint = "http://localhost:8188/prompt"
     resp = requests.post(prompt_endpoint, json=workflow)
     if resp.status_code != 200:
-        logger.error(f"Failed to queue comfy prompt: {resp.status_code}")
+        logger.error(f"Failed to queue comfy prompt: {resp.status_code} with text: {resp.text}")
         raise Exception("Failed to queue comfy prompt")
         
     result = resp.json()
