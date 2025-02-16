@@ -294,7 +294,7 @@ def run_comfy_generation(request: PredictionRequest) -> str:
     # Poll for completion
     logger.info("Polling for generation completion...")
     history_endpoint = f"http://localhost:8188/history/{prompt_id}"
-    for attempt in range(60):
+    for attempt in range(600):
         time.sleep(1)
         hist_resp = requests.get(history_endpoint)
         if hist_resp.status_code == 200:
