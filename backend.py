@@ -74,6 +74,14 @@ class PredictionRequest(BaseModel):
 
 
 # -----------------------------------
+# New LoRA Request Model
+# -----------------------------------
+class LoraRequest(BaseModel):
+    version: str
+    weights: str
+
+
+# -----------------------------------
 # ComfyUI Process Management
 # -----------------------------------
 def start_comfy():
@@ -351,7 +359,7 @@ def upload_to_s3(file_path: str) -> str:
 
 
 # -----------------------------------
-# FastAPI Endpoint
+# FastAPI Endpoints
 # -----------------------------------
 @app.post("/predictions")
 async def create_prediction(request: PredictionRequest, background_tasks: BackgroundTasks):
@@ -377,8 +385,22 @@ async def create_prediction(request: PredictionRequest, background_tasks: Backgr
             try:
                 requests.post(request.webhook, json=payload)
             except Exception as e:
-                print("Webhook callback failed:", e)
+                logger.error("Webhook callback failed: " + str(e))
 
         return {"id": str(uuid.uuid4()), "status": "succeeded", "output": [s3_url]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/lora")
+def add_lora(request: LoraRequest):
+    """
+    A separate endpoint for managing LoRA uploads.
+    Given a LoRA description with "version" and "weights", this endpoint will ensure the corresponding
+    .safetensors file is installed and available in ComfyUI/models/loras.
+    """
+    try:
+        filename = manage_lora(request.dict())
+        return {"status": "succeeded", "lora_filename": filename}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
